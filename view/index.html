@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorkStation - Carrière dans le Gaming</title>
+    <link rel="stylesheet" href="../public/style.css">
+</head>
+<body style="background-color: black;">
+    <header>
+        <a href="index.html">
+            <img src="../public/images/WorkStationLogo.png" 
+            alt="WorkStation Logo" id="logo">
+        </a>
+        <nav>
+            <ul id="nav-links">
+                <li><a href="#offre" class="offre-link">Offres d'emploi</a></li>
+                <li id="user-action"></li>
+                <li id="admin-link" style="display:none;"></li>
+            </ul>
+        </nav>
+    </header>
+    <section class="hero">
+        <h1 class="headline">
+            Faites évoluer votre carrière dans le<br>
+            gaming: connectez-vous aux talents<br>
+            et aux studios qui façonnent le futur<br>
+            du jeu vidéo.<br>
+        </h1>
+    </section>
+    <section class="images-section">
+        <a href="https://www.youtube.com/watch?v=wZZiUJ1fwjM" target="_blank">
+            <img src="../public/images/3danimator.PNG" alt="3D Animator" class="side-image">
+        </a>
+        <a href="https://www.youtube.com/watch?v=kpNH7-mGw4g" target="_blank">
+            <img src="../public/images/redfall.PNG" alt="Redfall" class="side-image">
+        </a>
+    </section>
+    <p class="intro-text">Plongez dans l'univers des métiers du jeu vidéo</p>
+    <section id="offres" class="scroll-section">
+        <h2 id="offre" class="recrutement-heading">Des entreprises qui recrutent</h2>
+        <div id="annonces-container"></div>
+    </section>
+    <script>
+        function menuToggle() {
+            const toggleMenu = document.getElementById("menu");
+            toggleMenu.classList.toggle("active");
+        }
+        function showDetails(jobId) {
+        const details = document.querySelector(`#${jobId} .full-details`);
+        details.style.display = details.style.display === 'none' ? 'block' : 'none';
+    }
+    </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    Promise.all([
+        fetch('http://localhost:3000/api/annonce').then(r => r.json()),
+        fetch('http://localhost:3000/api/companies').then(r => r.json())
+    ]).then(([annonces, companies]) => {
+        const container = document.getElementById('annonces-container');
+        container.innerHTML = '';
+        annonces.forEach(annonce => {
+            const company = companies.find(c => c.id === annonce.id_entreprise);
+            const companyName = company ? company.name : 'Entreprise inconnue';
+            const card = document.createElement('div');
+            card.className = 'annonce-card';
+            card.innerHTML = `
+                <h2>${annonce.titre}</h2>
+                <p style="font-size:1em;color:#00fff7;font-family:'Poppins',Arial,sans-serif;margin-bottom:8px;">🏢 ${companyName}</p>
+                <p>${annonce.short_description}</p>
+                <button class="learn-more-btn" data-id="${annonce.id}">En savoir plus</button>
+                <div class="details" id="details-${annonce.id}" style="display:none;"></div>
+            `;
+            container.appendChild(card);
+        });
+        document.querySelectorAll('.learn-more-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const detailsDiv = document.getElementById('details-' + id);
+                if (detailsDiv.style.display === 'none') {
+                    fetch('http://localhost:3000/api/annonce/' + id)
+                        .then(res => res.json())
+                        .then(annonce => {
+                            detailsDiv.innerHTML = `
+                                <p><strong>Description complète :</strong> ${annonce.full_description}</p>
+                                <p><strong>Salaire :</strong> ${annonce.salaire}</p>
+                                <p><strong>Lieu :</strong> ${annonce.lieu}</p>
+                                <p><strong>Type de contrat :</strong> ${annonce.typecontrat}</p>
+                                <p><strong>Temps de travail :</strong> ${annonce.tpstravail}</p>
+                                <button class="apply-btn" data-id="${annonce.id}">Postuler</button>
+                            `;
+                            detailsDiv.style.display = 'block';
+                            detailsDiv.querySelector('.apply-btn').addEventListener('click', function() {
+                                showApplicationForm(annonce.id, detailsDiv);
+                            });
+                        });
+                } else {
+                    detailsDiv.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+function showApplicationForm(annonceId, container) {
+    container.innerHTML += `
+        <form id="application-form">
+            <input type="text" name="nom" placeholder="Votre nom" required><br>
+            <input type="text" name="prenom" placeholder="Votre prénom" required><br>
+            <input type="email" name="email" placeholder="Votre email" required><br>
+            <input type="text" name="telephone" placeholder="Votre téléphone" required><br>
+            <textarea name="message" placeholder="Votre message" required></textarea><br>
+            <button type="submit">Envoyer la candidature</button>
+        </form>
+        <div id="application-result"></div>
+    `;
+    const form = container.querySelector('#application-form');
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (user) {
+        form.nom.value = user.nom;
+        form.prenom.value = user.prenom;
+        form.email.value = user.email;
+        form.telephone.value = user.telephone;
+    }
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const data = {
+            nom: form.nom.value,
+            prenom: form.prenom.value,
+            email: form.email.value,
+            telephone: form.telephone.value,
+            message: form.message.value,
+            id_advertisement: annonceId
+        };
+        if (user) {
+            createApplication(user.id, data.id_advertisement, data.message, container, form);
+        } else {
+            fetch(`http://localhost:3000/api/people`)
+                .then(res => res.json())
+                .then(people => {
+                    const existing = people.find(p => p.email === data.email);
+                    if (existing) {
+                        createApplication(existing.id, data.id_advertisement, data.message, container, form);
+                    } else {
+                        fetch('http://localhost:3000/api/people', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                nom: data.nom,
+                                prenom: data.prenom,
+                                email: data.email,
+                                password: '',
+                                telephone: data.telephone,
+                                role: 'user'
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(person => {
+                            createApplication(person.id, data.id_advertisement, data.message, container, form);
+                        })
+                        .catch(() => {
+                            container.querySelector('#application-result').innerText = "Erreur lors de la création de l'utilisateur.";
+                        });
+                    }
+                });
+        }
+    });
+}
+function createApplication(id_personne, id_advertisement, message, container, form) {
+    fetch('http://localhost:3000/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            id_personne,
+            id_advertisement,
+            message
+        })
+    })
+    .then(res => res.json())
+    .then(result => {
+        if(result.error) {
+            container.querySelector('#application-result').innerText = 'Erreur : ' + result.error;
+        } else {
+            container.querySelector('#application-result').innerText = 'Candidature envoyée avec succès !';
+            form.reset();
+        }
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const userAction = document.getElementById('user-action');
+    const adminLink = document.getElementById('admin-link');
+    if (user) {
+        userAction.innerHTML = `<span style=\"color:#fff;font-weight:bold;margin-right:10px;\">${user.prenom || user.nom || user.email}</span><button id=\"logout-btn\" class=\"connexion-btn\" style=\"background:#ff4444;\">Déconnexion</button>`;
+        document.getElementById('logout-btn').onclick = function() {
+            localStorage.removeItem('user');
+            window.location.reload();
+        };
+        if (user.role === 'admin') {
+            adminLink.style.display = '';
+            adminLink.innerHTML = `<a href=\"admin.html\" class=\"connexion-btn\" style=\"background:#00ffb3;\">Espace Admin</a>`;
+        }
+    } else {
+        userAction.innerHTML = `<a href=\"login.html\" class=\"connexion-btn\">Connexion</a>`;
+        adminLink.style.display = 'none';
+    }
+});
+</script>
+</body>
+</html>

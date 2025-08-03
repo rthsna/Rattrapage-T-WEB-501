@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Admin - WorkStation</title>
+    <link rel="stylesheet" href="../public/style.css">
+    <style>
+        .admin-tabs { display: flex; justify-content: center; gap: 18px; margin: 30px 0 20px 0; }
+        .admin-tab-btn {
+            background: linear-gradient(90deg, #00fff7 0%, #ff00cc 100%);
+            color: #fff;
+            border-radius: 20px;
+            padding: 10px 28px;
+            text-decoration: none;
+            font-weight: bold;
+            border: none;
+            font-size: 1em;
+            box-shadow: 0 0 16px 2px #00fff7cc, 0 2px 8px rgba(0,0,0,0.10);
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            outline: none;
+            display: inline-block;
+            letter-spacing: 1px;
+            font-family: 'Press Start 2P', 'Poppins', Arial, sans-serif;
+        }
+        .admin-tab-btn.active {
+            background: linear-gradient(90deg, #ff00cc 0%, #00fff7 100%);
+            color: #fff;
+            box-shadow: 0 0 24px 4px #ff00cc99, 0 4px 16px rgba(0,0,0,0.18);
+        }
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html">
+            <img src="../public/images/WorkStationLogo.png" alt="WorkStation Logo" id="logo">
+        </a>
+        <button id="logout-btn" class="connexion-btn" style="background:#ff4444;margin-left:30px;">Déconnexion</button>
+    </header>
+    <main style="max-width:1100px;margin:40px auto 0 auto;">
+        <h1 class="recrutement-heading">🎮 Espace Administrateur</h1>
+        <div class="admin-tabs">
+            <button class="admin-tab-btn active" data-tab="annonces">Annonces</button>
+            <button class="admin-tab-btn" data-tab="entreprises">Entreprises</button>
+            <button class="admin-tab-btn" data-tab="utilisateurs">Utilisateurs</button>
+            <button class="admin-tab-btn" data-tab="candidatures">Candidatures</button>
+        </div>
+        <section id="admin-annonces" class="admin-section active"></section>
+        <section id="admin-entreprises" class="admin-section"></section>
+        <section id="admin-utilisateurs" class="admin-section"></section>
+        <section id="admin-candidatures" class="admin-section"></section>
+    </main>
+    <script>
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!user || user.role !== 'admin') {
+        window.location.href = 'index.html';
+    }
+    document.getElementById('logout-btn').onclick = function() {
+        localStorage.removeItem('user');
+        window.location.href = 'index.html';
+    };
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.onclick = function() {
+            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('admin-' + btn.dataset.tab).classList.add('active');
+        };
+    });
+const entreprisesSection = document.getElementById('admin-entreprises');
+let companiesData_admin = [];
+let companiesPage_admin = 1;
+const companiesPerPage_admin = 5;
+function loadCompanies_admin() {
+    fetch('http://localhost:3000/api/companies')
+        .then(res => res.json())
+        .then(data => {
+            companiesData_admin = data;
+            renderCompanies_admin();
+        });
+}
+function renderCompanies_admin() {
+    const start = (companiesPage_admin - 1) * companiesPerPage_admin;
+    const end = start + companiesPerPage_admin;
+    const pageData = companiesData_admin.slice(start, end);
+    let html = `<h2 style=\"text-align:center;color:#00fff7;font-family:Press Start 2P,Arial,sans-serif;\">Entreprises</h2>`;
+    html += `<form id=\"add-company-form-admin\" style=\"margin-bottom:24px;\">
+        <input type=\"text\" name=\"name\" placeholder=\"Nom de l'entreprise\" required>
+        <input type=\"text\" name=\"description\" placeholder=\"Description\" required>
+        <input type=\"text\" name=\"location\" placeholder=\"Lieu\" required>
+        <button type=\"submit\" class=\"apply-btn\" style=\"background:#00ffb3;\">Ajouter</button>
+    </form>`;
+    if (pageData.length === 0) {
+        html += '<p style=\"text-align:center;\">Aucune entreprise pour le moment.</p>';
+    }
+    pageData.forEach(c => {
+        html += `<div class=\"annonce-card\" style=\"margin-bottom:18px;\" id=\"company-admin-${c.id}\">\n            <h2>${c.name}</h2>\n            <p>${c.description}</p>\n            <p style=\"color:#00fff7;\">${c.location}</p>\n            <div style=\"margin-top:14px;\">\n                <button class=\"apply-btn\" style=\"background:#ffb300;\" onclick=\"editCompany_admin(${c.id})\">Modifier</button>\n                <button class=\"apply-btn\" style=\"background:#ff4444;\" onclick=\"deleteCompany_admin(${c.id})\">Supprimer</button>\n            </div>\n        </div>`;
+    });
+    const totalPages = Math.ceil(companiesData_admin.length / companiesPerPage_admin);
+    if (totalPages > 1) {
+        html += '<div style=\"text-align:center;margin-top:18px;\">';
+        if (companiesPage_admin > 1) html += `<button class=\"apply-btn\" style=\"background:#00fff7;\" onclick=\"companiesPrevPage_admin()\">&lt; Précédent</button>`;
+        html += `<span style=\"margin:0 12px;\">Page ${companiesPage_admin} / ${totalPages}</span>`;
+        if (companiesPage_admin < totalPages) html += `<button class=\"apply-btn\" style=\"background:#00fff7;\" onclick=\"companiesNextPage_admin()\">Suivant &gt;</button>`;
+        html += '</div>';
+    }
+    entreprisesSection.innerHTML = html;
+    document.getElementById('add-company-form-admin').onsubmit = function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+            name: form.name.value,
+            description: form.description.value,
+            location: form.location.value
+        };
+        fetch('http://localhost:3000/api/companies', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(() => { loadCompanies_admin(); form.reset(); });
+    };
+}
+window.editCompany_admin = function(id) {
+    const c = companiesData_admin.find(x => x.id === id);
+    const card = document.getElementById('company-admin-' + id);
+    card.innerHTML = `<form id=\"edit-company-form-admin-${id}\">\n        <h2>Modifier l'entreprise</h2>\n        <input type=\"text\" name=\"name\" value=\"${c.name}\" required><br>\n        <input type=\"text\" name=\"description\" value=\"${c.description}\" required><br>\n        <input type=\"text\" name=\"location\" value=\"${c.location}\" required><br>\n        <button type=\"submit\" class=\"apply-btn\" style=\"background:#00ffb3;\">Enregistrer</button>\n        <button type=\"button\" class=\"apply-btn\" style=\"background:#ff4444;\" onclick=\"loadCompanies_admin()\">Annuler</button>\n    </form>`;
+    document.getElementById(`edit-company-form-admin-${id}`).onsubmit = function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+            name: form.name.value,
+            description: form.description.value,
+            location: form.location.value
+        };
+        fetch('http://localhost:3000/api/companies/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(() => loadCompanies_admin());
+    };
+}
+window.deleteCompany_admin = function(id) {
+    if(confirm('Supprimer cette entreprise ?')) {
+        fetch('http://localhost:3000/api/companies/' + id, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(() => loadCompanies_admin());
+    }
+}
+window.companiesPrevPage_admin = function() { companiesPage_admin--; renderCompanies_admin(); }
+window.companiesNextPage_admin = function() { companiesPage_admin++; renderCompanies_admin(); }
+loadCompanies_admin();
+const usersSection = document.getElementById('admin-utilisateurs');
+let usersData = [];
+let usersPage = 1;
+const usersPerPage = 5;
+function loadUsers() {
+    fetch('http://localhost:3000/api/people')
+        .then(res => res.json())
+        .then(data => {
+            usersData = data;
+            renderUsers();
+        });
+}
+function renderUsers() {
+    const start = (usersPage - 1) * usersPerPage;
+    const end = start + usersPerPage;
+    const pageData = usersData.slice(start, end);
+    let html = `<h2 style=\"text-align:center;color:#00fff7;font-family:Press Start 2P,Arial,sans-serif;\">Utilisateurs</h2>`;
+    html += `<form id=\"add-user-form\" style=\"margin-bottom:24px;\">
+        <input type=\"text\" name=\"nom\" placeholder=\"Nom\" required>
+        <input type=\"text\" name=\"prenom\" placeholder=\"Prénom\" required>
+        <input type=\"email\" name=\"email\" placeholder=\"Email\" required>
+        <input type=\"password\" name=\"password\" placeholder=\"Mot de passe\" required>
+        <input type=\"text\" name=\"telephone\" placeholder=\"Téléphone\" required>
+        <select name=\"role\" required><option value=\"user\">user</option><option value=\"admin\">admin</option></select>
+        <button type=\"submit\" class=\"apply-btn\" style=\"background:#00ffb3;\">Ajouter</button>
+    </form>`;
+    if (pageData.length === 0) {
+        html += '<p style=\"text-align:center;\">Aucun utilisateur pour le moment.</p>';
+    }
+    pageData.forEach(u => {
+        html += `<div class=\"annonce-card\" style=\"margin-bottom:18px;\" id=\"user-${u.id}\">\n            <h2>${u.prenom} ${u.nom}</h2>\n            <p style=\"color:#00fff7;\">${u.email} (${u.role})</p>\n            <p>Téléphone : ${u.telephone || ''}</p>\n            <div style=\"margin-top:14px;\">\n                <button class=\"apply-btn\" style=\"background:#ffb300;\" onclick=\"editUser(${u.id})\">Modifier</button>\n                <button class=\"apply-btn\" style=\"background:#ff4444;\" onclick=\"deleteUser(${u.id})\">Supprimer</button>\n            </div>\n        </div>`;
+    });
+    const totalPages = Math.ceil(usersData.length / usersPerPage);
+    if (totalPages > 1) {
+        html += '<div style=\"text-align:center;margin-top:18px;\">';
+        if (usersPage > 1) html += `<button class=\"apply-btn\" style=\"background:#00fff7;\" onclick=\"usersPrevPage()\">&lt; Précédent</button>`;
+        html += `<span style=\"margin:0 12px;\">Page ${usersPage} / ${totalPages}</span>`;
+        if (usersPage < totalPages) html += `<button class=\"apply-btn\" style=\"background:#00fff7;\" onclick=\"usersNextPage()\">Suivant &gt;</button>`;
+        html += '</div>';
+    }
+    usersSection.innerHTML = html;
+    document.getElementById('add-user-form').onsubmit = function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+            nom: form.nom.value,
+            prenom: form.prenom.value,
+            email: form.email.value,
+            password: form.password.value,
+            telephone: form.telephone.value,
+            role: form.role.value
+        };
+        fetch('http://localhost:3000/api/people', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(() => { loadUsers(); form.reset(); });
+    };
+}
+window.editUser = function(id) {
+    const u = usersData.find(x => x.id === id);
+    const card = document.getElementById('user-' + id);
+    card.innerHTML = `<form id=\"edit-user-form-${id}\">\n        <h2>Modifier l'utilisateur</h2>\n        <input type=\"text\" name=\"nom\" value=\"${u.nom}\" required><br>\n        <input type=\"text\" name=\"prenom\" value=\"${u.prenom}\" required><br>\n        <input type=\"email\" name=\"email\" value=\"${u.email}\" required><br>\n        <input type=\"password\" name=\"password\" placeholder=\"Nouveau mot de passe (laisser vide pour ne pas changer)\"><br>\n        <input type=\"text\" name=\"telephone\" value=\"${u.telephone || ''}\" required><br>\n        <select name=\"role\" required><option value=\"user\" ${u.role==='user'?'selected':''}>user</option><option value=\"admin\" ${u.role==='admin'?'selected':''}>admin</option></select><br>\n        <button type=\"submit\" class=\"apply-btn\" style=\"background:#00ffb3;\">Enregistrer</button>\n        <button type=\"button\" class=\"apply-btn\" style=\"background:#ff4444;\" onclick=\"loadUsers()\">Annuler</button>\n    </form>`;
+    document.getElementById(`edit-user-form-${id}`).onsubmit = function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+            nom: form.nom.value,
+            prenom: form.prenom.value,
+            email: form.email.value,
+            password: form.password.value,
+            telephone: form.telephone.value,
+            role: form.role.value
+        };
+        if (!data.password) delete data.password;
+        fetch('http://localhost:3000/api/people/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(() => loadUsers());
+    };
+}
+window.deleteUser = function(id) {
+    if(confirm('Supprimer cet utilisateur ?')) {
+        fetch('http://localhost:3000/api/people/' + id, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(() => loadUsers());
+    }
+}
+window.usersPrevPage = function() { usersPage--; renderUsers(); }
+window.usersNextPage = function() { usersPage++; renderUsers(); }
+loadUsers();
+const candidaturesSection = document.getElementById('admin-candidatures');
+let candidaturesData = [];
+let candidaturesPage = 1;
+const candidaturesPerPage = 5;
+let annoncesData = [];
+let peopleData = [];
+function loadCandidatures() {
+    Promise.all([
+        fetch('http://localhost:3000/api/applications').then(r => r.json()),
+        fetch('http://localhost:3000/api/annonce').then(r => r.json()),
+        fetch('http://localhost:3000/api/people').then(r => r.json())
+    ]).then(([apps, annonces, people]) => {
+        candidaturesData = apps;
+        annoncesData = annonces;
+        peopleData = people;
+        renderCandidatures();
+    });
+}
+function renderCandidatures() {
+    const start = (candidaturesPage - 1) * candidaturesPerPage;
+    const end = start + candidaturesPerPage;
+    const pageData = candidaturesData.slice(start, end);
+    let html = `<h2 style=\"text-align:center;color:#00fff7;font-family:Press Start 2P,Arial,sans-serif;\">Candidatures</h2>`;
+    if (pageData.length === 0) {
+        html += '<p style=\"text-align:center;\">Aucune candidature pour le moment.</p>';
+    }
+    pageData.forEach(app => {
+        const annonce = annoncesData.find(a => a.id === app.id_advertisement);
+        const personne = peopleData.find(p => p.id === app.id_personne);
+        html += `<div class=\"annonce-card\" style=\"margin-bottom:18px;\" id=\"candidature-${app.id}\">\n            <h2>${personne ? personne.prenom + ' ' + personne.nom : 'Candidat inconnu'}</h2>\n            <p style=\"color:#00fff7;\">${personne ? personne.email : ''}</p>\n            <p><b>Offre :</b> ${annonce ? annonce.titre : 'Annonce inconnue'}</p>\n            <p><b>Message :</b> ${app.message}</p>\n            <p><b>Date :</b> ${app.date_postulation ? app.date_postulation : ''}</p>\n            <div style=\"margin-top:14px;\">\n                <button class=\"apply-btn\" style=\"background:#ff4444;\" onclick=\"deleteCandidature(${app.id})\">Supprimer</button>\n            </div>\n        </div>`;
+    });
+    const totalPages = Math.ceil(candidaturesData.length / candidaturesPerPage);
+    if (totalPages > 1) {
+        html += '<div style=\"text-align:center;margin-top:18px;\">';
+        if (candidaturesPage > 1) html += `<button class=\"apply-btn\" style=\"background:#00fff7;\" onclick=\"candidaturesPrevPage()\">&lt; Précédent</button>`;
+        html += `<span style=\"margin:0 12px;\">Page ${candidaturesPage} / ${totalPages}</span>`;
+        if (candidaturesPage < totalPages) html += `<button class=\"apply-btn\" style=\"background:#00fff7;\" onclick=\"candidaturesNextPage()\">Suivant &gt;</button>`;
+        html += '</div>';
+    }
+    candidaturesSection.innerHTML = html;
+}
+window.deleteCandidature = function(id) {
+    if(confirm('Supprimer cette candidature ?')) {
+        fetch('http://localhost:3000/api/applications/' + id, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(() => loadCandidatures());
+    }
+}
+window.candidaturesPrevPage = function() { candidaturesPage--; renderCandidatures(); }
+window.candidaturesNextPage = function() { candidaturesPage++; renderCandidatures(); }
+loadCandidatures();
+const annoncesSection = document.getElementById('admin-annonces');
+let annoncesData_admin = [];
+let annoncesPage_admin = 1;
+const annoncesPerPage_admin = 5;
+let companiesList = [];
+function loadAnnoncesCRUD() {
+    Promise.all([
+        fetch('http://localhost:3000/api/annonce').then(r => r.json()),
+        fetch('http://localhost:3000/api/companies').then(r => r.json())
+    ]).then(([annonces, companies]) => {
+        annoncesData_admin = annonces;
+        companiesList = companies;
+        renderAnnoncesCRUD();
+    });
+}
+function renderAnnoncesCRUD() {
+    const start = (annoncesPage_admin - 1) * annoncesPerPage_admin;
+    const end = start + annoncesPerPage_admin;
+    const pageData = annoncesData_admin.slice(start, end);
+    let html = `<h2 style=\"text-align:center;color:#00fff7;font-family:Press Start 2P,Arial,sans-serif;\">Annonces</h2>`;
+    const companyOptions = companiesList.map(c => `<option value=\"${c.id}\">${c.name}</option>`).join('');
+    html += `<form id=\"add-annonce-form-admin\" style=\"margin-bottom:24px;\">
+        <input type=\"text\" name=\"titre\" placeholder=\"Titre\" required>
+        <select name=\"id_entreprise\" required><option value=\"\">Entreprise</option>${companyOptions}</select>
+        <input type=\"text\" name=\"short_description\" placeholder=\"Description courte\" required>
+        <textarea name=\"full_description\" placeholder=\"Description complète\" required></textarea>
+        <input type=\"text\" name=\"typecontrat\" placeholder=\"Type de contrat\" required>
+        <input type=\"text\" name=\"salaire\" placeholder=\"Salaire\" required>
+        <input type=\"text\" name=\"lieu\" placeholder=\"Lieu\" required>
+        <input type=\"text\" name=\"tpstravail\" placeholder=\"Temps de travail\" required>
+        <button type=\"submit\" class=\"apply-btn\" style=\"background:#00ffb3;\">Ajouter</button>
+    </form>`;
+    if (pageData.length === 0) {
+        html += '<p style=\"text-align:center;\">Aucune annonce pour le moment.</p>';
+    }
+    pageData.forEach(a => {
+        const company = companiesList.find(c => c.id === a.id_entreprise);
+        const companyName = company ? company.name : 'Entreprise inconnue';
+        html += `<div class=\"annonce-card\" style=\"margin-bottom:18px;\" id=\"annonce-admin-${a.id}\">\n            <h2>${a.titre}</h2>\n            <p style=\"color:#00fff7;font-size:1em;\">🏢 ${companyName}</p>\n            <p>${a.short_description}</p>\n            <div style=\"margin-top:14px;\">\n                <button class=\"apply-btn\" style=\"background:#ffb300;\" onclick=\"editAnnonceCRUD(${a.id})\">Modifier</button>\n                <button class=\"apply-btn\" style=\"background:#ff4444;\" onclick=\"deleteAnnonceCRUD(${a.id})\">Supprimer</button>\n            </div>\n        </div>`;
+    });
+    const totalPages = Math.ceil(annoncesData_admin.length / annoncesPerPage_admin);
+    if (totalPages > 1) {
+        html += '<div style=\"text-align:center;margin-top:18px;\">';
+        if (annoncesPage_admin > 1) html += `<button class=\"apply-btn\" style=\"background:#00fff7;\" onclick=\"annoncesPrevPage_admin()\">&lt; Précédent</button>`;
+        html += `<span style=\"margin:0 12px;\">Page ${annoncesPage_admin} / ${totalPages}</span>`;
+        if (annoncesPage_admin < totalPages) html += `<button class=\"apply-btn\" style=\"background:#00fff7;\" onclick=\"annoncesNextPage_admin()\">Suivant &gt;</button>`;
+        html += '</div>';
+    }
+    annoncesSection.innerHTML = html;
+    document.getElementById('add-annonce-form-admin').onsubmit = function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+            titre: form.titre.value,
+            id_entreprise: parseInt(form.id_entreprise.value, 10),
+            short_description: form.short_description.value,
+            full_description: form.full_description.value,
+            typecontrat: form.typecontrat.value,
+            salaire: form.salaire.value,
+            lieu: form.lieu.value,
+            tpstravail: form.tpstravail.value
+        };
+        fetch('http://localhost:3000/api/annonce', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(() => { loadAnnoncesCRUD(); form.reset(); });
+    };
+}
+window.editAnnonceCRUD = function(id) {
+    const a = annoncesData_admin.find(x => x.id === id);
+    const card = document.getElementById('annonce-admin-' + id);
+    const companyOptions = companiesList.map(c => `<option value=\"${c.id}\" ${c.id === a.id_entreprise ? 'selected' : ''}>${c.name}</option>`).join('');
+    card.innerHTML = `<form id=\"edit-annonce-form-admin-${id}\">\n        <h2>Modifier l'annonce</h2>\n        <input type=\"text\" name=\"titre\" value=\"${a.titre}\" required><br>\n        <select name=\"id_entreprise\" required>${companyOptions}</select><br>\n        <input type=\"text\" name=\"short_description\" value=\"${a.short_description}\" required><br>\n        <textarea name=\"full_description\" required>${a.full_description}</textarea><br>\n        <input type=\"text\" name=\"typecontrat\" value=\"${a.typecontrat}\" required><br>\n        <input type=\"text\" name=\"salaire\" value=\"${a.salaire}\" required><br>\n        <input type=\"text\" name=\"lieu\" value=\"${a.lieu}\" required><br>\n        <input type=\"text\" name=\"tpstravail\" value=\"${a.tpstravail}\" required><br>\n        <button type=\"submit\" class=\"apply-btn\" style=\"background:#00ffb3;\">Enregistrer</button>\n        <button type=\"button\" class=\"apply-btn\" style=\"background:#ff4444;\" onclick=\"loadAnnoncesCRUD()\">Annuler</button>\n    </form>`;
+    document.getElementById(`edit-annonce-form-admin-${id}`).onsubmit = function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+            titre: form.titre.value,
+            id_entreprise: parseInt(form.id_entreprise.value, 10),
+            short_description: form.short_description.value,
+            full_description: form.full_description.value,
+            typecontrat: form.typecontrat.value,
+            salaire: form.salaire.value,
+            lieu: form.lieu.value,
+            tpstravail: form.tpstravail.value
+        };
+        fetch('http://localhost:3000/api/annonce/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(() => loadAnnoncesCRUD());
+    };
+}
+window.deleteAnnonceCRUD = function(id) {
+    if(confirm('Supprimer cette annonce ?')) {
+        fetch('http://localhost:3000/api/annonce/' + id, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(() => loadAnnoncesCRUD());
+    }
+}
+window.annoncesPrevPage_admin = function() { annoncesPage_admin--; renderAnnoncesCRUD(); }
+window.annoncesNextPage_admin = function() { annoncesPage_admin++; renderAnnoncesCRUD(); }
+loadAnnoncesCRUD();
+    </script>
+</body>
+</html>

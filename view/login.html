@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - WorkStation</title>
+    <link rel="stylesheet" href="../public/style.css">
+</head>
+<body>
+    <header>
+        <a href="index.html">
+            <img src="../public/images/WorkStationLogo.png" alt="WorkStation Logo" id="logo">
+        </a>
+    </header>
+    <div class="login-container">
+        <div class="identification">
+            <h1>Connexion à votre espace</h1>
+            <form id="login-form">
+                <input type="email" name="email" placeholder="Email" required><br>
+                <input type="password" name="password" placeholder="Mot de passe" required><br>
+                <button type="submit">Se connecter</button>
+            </form>
+            <div id="login-result"></div>
+            <div class="register-container">
+                <p>Pas encore inscrit ?</p>
+                <button id="register-btn" type="button">S'inscrire</button>
+                <noscript>
+                    <a href="inscription.html">S'inscrire</a>
+                </noscript>
+            </div>
+        </div>
+    </div>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const data = {
+            email: this.email.value,
+            password: this.password.value
+        };
+        fetch('http://localhost:3000/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.user) {
+                localStorage.setItem('user', JSON.stringify(result.user));
+                if (result.user.role === 'admin') {
+                    window.location.href = 'admin.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
+            } else {
+                document.getElementById('login-result').innerText = result.error;
+            }
+        });
+    });
+    document.getElementById('register-btn').onclick = function() {
+        window.location.href = './inscription.html';
+    };
+});
+</script>
+</body>
+</html>
+
+ 

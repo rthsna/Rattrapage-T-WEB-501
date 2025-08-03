@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription</title>
+    <link rel="stylesheet" href="../public/style.css">
+</head>
+<body>
+    <div class="identification">
+        <h1>Formulaire d'inscription</h1>
+        <form id="register-form">
+            <input type="text" name="nom" placeholder="Nom" required><br>
+            <input type="text" name="prenom" placeholder="Prénom" required><br>
+            <input type="email" name="email" placeholder="Email" required><br>
+            <input type="password" name="password" placeholder="Mot de passe" required><br>
+            <input type="text" name="telephone" placeholder="Téléphone"><br>
+            <button type="submit">S'inscrire</button>
+        </form>
+        <div id="register-result"></div>
+        <script>
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                nom: this.nom.value,
+                prenom: this.prenom.value,
+                email: this.email.value,
+                password: this.password.value,
+                telephone: this.telephone.value
+            };
+            fetch('http://localhost:3000/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                document.getElementById('register-result').innerText = result.message || result.error;
+                if (result.id) window.location.href = 'login.html';
+            });
+        });
+        </script>
+    </div>
+</body>
+</html>
