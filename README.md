@@ -10,11 +10,16 @@ npm start
 ```
 
 ## Structure actuelle
-- Serveur Express basique
-- Route de test API
-- Configuration initiale
+- Serveur Express avec connexion MySQL
+- Routes API pour les annonces (GET, POST)
+- Configuration de la base de données
+
+## API Endpoints
+- `GET /api/annonce` - Récupérer toutes les annonces
+- `GET /api/annonce/:id` - Récupérer une annonce spécifique
+- `POST /api/annonce` - Créer une nouvelle annonce
 
 ## Prochaines étapes
-- Configuration de la base de données
-- API REST pour les annonces
+- Système d'authentification
 - Interface utilisateur
+- Gestion des entreprises
