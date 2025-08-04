@@ -90,6 +90,24 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+// Routes pour les candidatures
+app.get('/api/applications', (req, res) => {
+    const sql = 'SELECT * FROM applications';
+    db.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+app.post('/api/applications', (req, res) => {
+    const { id_personne, id_advertisement, message } = req.body;
+    const sql = 'INSERT INTO applications (id_personne, id_advertisement, message) VALUES (?, ?, ?)';
+    db.query(sql, [id_personne, id_advertisement, message], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Candidature créée avec succès', id: result.insertId });
+    });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
