@@ -15,6 +15,7 @@ npm start
 - Système d'authentification avec bcrypt
 - Interface utilisateur de base
 - Système de candidature
+- Gestion des entreprises (CRUD)
 - Configuration de la base de données
 
 ## API Endpoints
@@ -32,6 +33,13 @@ npm start
 - `GET /api/applications` - Récupérer toutes les candidatures
 - `POST /api/applications` - Créer une nouvelle candidature
 
+### Entreprises
+- `GET /api/companies` - Récupérer toutes les entreprises
+- `GET /api/companies/:id` - Récupérer une entreprise spécifique
+- `POST /api/companies` - Créer une nouvelle entreprise
+- `PUT /api/companies/:id` - Mettre à jour une entreprise
+- `DELETE /api/companies/:id` - Supprimer une entreprise
+
 ## Interface utilisateur
 - Page d'accueil avec liste des annonces
 - Page de détail d'offre avec formulaire de candidature
@@ -39,6 +47,6 @@ npm start
 - Navigation simple
 
 ## Prochaines étapes
-- Gestion des entreprises
 - Interface d'administration
 - Améliorations UI/UX
+- Tests et finalisation

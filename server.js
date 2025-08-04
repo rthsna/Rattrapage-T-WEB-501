@@ -108,6 +108,53 @@ app.post('/api/applications', (req, res) => {
     });
 });
 
+// Routes pour les entreprises
+app.get('/api/companies', (req, res) => {
+    const sql = 'SELECT * FROM companies';
+    db.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+app.get('/api/companies/:id', (req, res) => {
+    const companyId = req.params.id;
+    const sql = 'SELECT * FROM companies WHERE id = ?';
+    db.query(sql, [companyId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.length === 0) return res.status(404).json({ message: 'Entreprise non trouvée' });
+        res.json(result[0]);
+    });
+});
+
+app.post('/api/companies', (req, res) => {
+    const { name, description, location } = req.body;
+    const sql = 'INSERT INTO companies (name, description, location) VALUES (?, ?, ?)';
+    db.query(sql, [name, description, location], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Entreprise créée avec succès', id: result.insertId });
+    });
+});
+
+app.put('/api/companies/:id', (req, res) => {
+    const companyId = req.params.id;
+    const { name, description, location } = req.body;
+    const sql = 'UPDATE companies SET name = ?, description = ?, location = ? WHERE id = ?';
+    db.query(sql, [name, description, location, companyId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Entreprise mise à jour avec succès' });
+    });
+});
+
+app.delete('/api/companies/:id', (req, res) => {
+    const companyId = req.params.id;
+    const sql = 'DELETE FROM companies WHERE id = ?';
+    db.query(sql, [companyId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Entreprise supprimée avec succès' });
+    });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
