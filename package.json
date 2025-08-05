@@ -1,6 +1,6 @@
 {
   "name": "jobboard-project",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Projet jobboard - T-WEB-501",
   "main": "server.js",
   "scripts": {

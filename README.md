@@ -11,11 +11,12 @@ npm start
 
 ## Structure actuelle
 - Serveur Express avec connexion MySQL
-- Routes API pour les annonces (GET, POST)
+- Routes API pour les annonces (CRUD complet)
 - Système d'authentification avec bcrypt
 - Interface utilisateur de base
 - Système de candidature
 - Gestion des entreprises (CRUD)
+- Interface d'administration
 - Configuration de la base de données
 
 ## API Endpoints
@@ -24,14 +25,25 @@ npm start
 - `GET /api/annonce` - Récupérer toutes les annonces
 - `GET /api/annonce/:id` - Récupérer une annonce spécifique
 - `POST /api/annonce` - Créer une nouvelle annonce
+- `PUT /api/annonce/:id` - Mettre à jour une annonce
+- `DELETE /api/annonce/:id` - Supprimer une annonce
 
 ### Authentification
 - `POST /api/register` - Inscription d'un nouvel utilisateur
 - `POST /api/login` - Connexion utilisateur
 
+### Utilisateurs (Admin)
+- `GET /api/people` - Récupérer tous les utilisateurs
+- `GET /api/people/:id` - Récupérer un utilisateur spécifique
+- `PUT /api/people/:id` - Mettre à jour un utilisateur
+- `DELETE /api/people/:id` - Supprimer un utilisateur
+
 ### Candidatures
 - `GET /api/applications` - Récupérer toutes les candidatures
+- `GET /api/applications/:id` - Récupérer une candidature spécifique
 - `POST /api/applications` - Créer une nouvelle candidature
+- `PUT /api/applications/:id` - Mettre à jour une candidature
+- `DELETE /api/applications/:id` - Supprimer une candidature
 
 ### Entreprises
 - `GET /api/companies` - Récupérer toutes les entreprises
@@ -43,10 +55,11 @@ npm start
 ## Interface utilisateur
 - Page d'accueil avec liste des annonces
 - Page de détail d'offre avec formulaire de candidature
+- Interface d'administration avec gestion CRUD
 - Styles CSS de base
 - Navigation simple
 
 ## Prochaines étapes
-- Interface d'administration
 - Améliorations UI/UX
 - Tests et finalisation
+- Fonctionnalités avancées

@@ -58,6 +58,25 @@ app.post('/api/annonce', (req, res) => {
     });
 });
 
+app.put('/api/annonce/:id', (req, res) => {
+    const adId = req.params.id;
+    const { titre, short_description, full_description, typecontrat, salaire, lieu, tpstravail, id_entreprise } = req.body;
+    const sql = `UPDATE annonce SET titre = ?, short_description = ?, full_description = ?, typecontrat = ?, salaire = ?, lieu = ?, tpstravail = ?, id_entreprise = ? WHERE id = ?`;
+    db.query(sql, [titre, short_description, full_description, typecontrat, salaire, lieu, tpstravail, id_entreprise, adId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Annonce mise à jour avec succès' });
+    });
+});
+
+app.delete('/api/annonce/:id', (req, res) => {
+    const adId = req.params.id;
+    const sql = `DELETE FROM annonce WHERE id = ?`;
+    db.query(sql, [adId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Annonce supprimée avec succès' });
+    });
+});
+
 // Routes d'authentification
 app.post('/api/register', (req, res) => {
     const { nom, prenom, email, password, telephone, role } = req.body;
@@ -90,6 +109,44 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+// Routes pour les utilisateurs (admin)
+app.get('/api/people', (req, res) => {
+    const sql = 'SELECT * FROM people';
+    db.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+app.get('/api/people/:id', (req, res) => {
+    const personId = req.params.id;
+    const sql = 'SELECT * FROM people WHERE id = ?';
+    db.query(sql, [personId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.length === 0) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        res.json(result[0]);
+    });
+});
+
+app.put('/api/people/:id', (req, res) => {
+    const personId = req.params.id;
+    const { nom, prenom, email, telephone, role } = req.body;
+    const sql = 'UPDATE people SET nom = ?, prenom = ?, email = ?, telephone = ?, role = ? WHERE id = ?';
+    db.query(sql, [nom, prenom, email, telephone, role, personId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Utilisateur mis à jour avec succès' });
+    });
+});
+
+app.delete('/api/people/:id', (req, res) => {
+    const personId = req.params.id;
+    const sql = 'DELETE FROM people WHERE id = ?';
+    db.query(sql, [personId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Utilisateur supprimé avec succès' });
+    });
+});
+
 // Routes pour les candidatures
 app.get('/api/applications', (req, res) => {
     const sql = 'SELECT * FROM applications';
@@ -99,12 +156,41 @@ app.get('/api/applications', (req, res) => {
     });
 });
 
+app.get('/api/applications/:id', (req, res) => {
+    const appId = req.params.id;
+    const sql = 'SELECT * FROM applications WHERE id = ?';
+    db.query(sql, [appId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.length === 0) return res.status(404).json({ message: 'Candidature non trouvée' });
+        res.json(result[0]);
+    });
+});
+
 app.post('/api/applications', (req, res) => {
     const { id_personne, id_advertisement, message } = req.body;
     const sql = 'INSERT INTO applications (id_personne, id_advertisement, message) VALUES (?, ?, ?)';
     db.query(sql, [id_personne, id_advertisement, message], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'Candidature créée avec succès', id: result.insertId });
+    });
+});
+
+app.put('/api/applications/:id', (req, res) => {
+    const appId = req.params.id;
+    const { id_personne, id_advertisement, message } = req.body;
+    const sql = 'UPDATE applications SET id_personne = ?, id_advertisement = ?, message = ? WHERE id = ?';
+    db.query(sql, [id_personne, id_advertisement, message, appId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Candidature mise à jour avec succès' });
+    });
+});
+
+app.delete('/api/applications/:id', (req, res) => {
+    const appId = req.params.id;
+    const sql = 'DELETE FROM applications WHERE id = ?';
+    db.query(sql, [appId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Candidature supprimée avec succès' });
     });
 });
 
