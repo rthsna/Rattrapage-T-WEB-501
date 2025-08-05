@@ -21,7 +21,7 @@
     <main class="container">
         <h2>Offres d'emploi disponibles</h2>
         <div id="annonces-container">
-            <!-- Les annonces seront chargées ici -->
+            <div class="loading">Chargement des annonces...</div>
         </div>
     </main>
 
@@ -37,9 +37,14 @@
                     return;
                 }
 
-                annonces.forEach(annonce => {
+                container.innerHTML = '';
+                annonces.forEach((annonce, index) => {
                     const card = document.createElement('div');
                     card.className = 'job-card';
+                    card.style.animationDelay = `${index * 0.1}s`;
+                    card.style.animation = 'fadeIn 0.5s ease forwards';
+                    card.style.opacity = '0';
+                    
                     card.innerHTML = `
                         <h3>${annonce.titre}</h3>
                         <div class="company">${annonce.short_description}</div>
@@ -55,6 +60,21 @@
                 document.getElementById('annonces-container').innerHTML = 
                     '<p class="message error">Erreur lors du chargement des annonces.</p>';
             });
+
+        // Vérifier si l'utilisateur est connecté
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user) {
+            const nav = document.querySelector('nav ul');
+            const welcomeItem = document.createElement('li');
+            welcomeItem.innerHTML = `<span style="color: #3498db;">Bienvenue, ${user.prenom || user.nom || user.email}</span>`;
+            nav.insertBefore(welcomeItem, nav.firstChild);
+            
+            if (user.role === 'admin') {
+                const adminItem = document.createElement('li');
+                adminItem.innerHTML = '<a href="admin.html">Administration</a>';
+                nav.appendChild(adminItem);
+            }
+        }
     </script>
 </body>
 </html>

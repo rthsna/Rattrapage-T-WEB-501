@@ -13,10 +13,11 @@ npm start
 - Serveur Express avec connexion MySQL
 - Routes API pour les annonces (CRUD complet)
 - Système d'authentification avec bcrypt
-- Interface utilisateur de base
+- Interface utilisateur moderne avec animations
 - Système de candidature
 - Gestion des entreprises (CRUD)
 - Interface d'administration
+- Design responsive
 - Configuration de la base de données
 
 ## API Endpoints
@@ -53,13 +54,14 @@ npm start
 - `DELETE /api/companies/:id` - Supprimer une entreprise
 
 ## Interface utilisateur
-- Page d'accueil avec liste des annonces
+- Page d'accueil avec liste des annonces animées
 - Page de détail d'offre avec formulaire de candidature
 - Interface d'administration avec gestion CRUD
-- Styles CSS de base
-- Navigation simple
+- Design responsive et moderne
+- Animations CSS et transitions
+- Navigation intuitive
 
 ## Prochaines étapes
-- Améliorations UI/UX
 - Tests et finalisation
 - Fonctionnalités avancées
+- Optimisations de performance
