@@ -1,67 +1,41 @@
-# JobBoard - Projet T-WEB-501
+# JobBoard - Projet étudiant
 
-## Description
-Projet de jobboard développé dans le cadre du module T-WEB-501.
+## Présentation
 
-## Installation
-```bash
-npm install
-npm start
-```
+Ce projet est un site web de type jobboard permettant de publier et gérer des offres d’emploi, de postuler à des annonces, et de gérer la base de données via une interface d’administration réservée à l’admin.
 
-## Structure actuelle
-- Serveur Express avec connexion MySQL
-- Routes API pour les annonces (CRUD complet)
-- Système d'authentification avec bcrypt
-- Interface utilisateur moderne avec animations
-- Système de candidature
-- Gestion des entreprises (CRUD)
-- Interface d'administration
-- Design responsive
-- Configuration de la base de données
+## Fonctionnalités principales
 
-## API Endpoints
+- Affichage des offres d’emploi
+- Postulation à une offre via un formulaire
+- Inscription et connexion utilisateur
+- Page d’administration (CRUD sur annonces, entreprises, utilisateurs, candidatures)
+- Authentification (admin/user)
+- Pagination sur les listes
 
-### Annonces
-- `GET /api/annonce` - Récupérer toutes les annonces
-- `GET /api/annonce/:id` - Récupérer une annonce spécifique
-- `POST /api/annonce` - Créer une nouvelle annonce
-- `PUT /api/annonce/:id` - Mettre à jour une annonce
-- `DELETE /api/annonce/:id` - Supprimer une annonce
+## Technologies utilisées
 
-### Authentification
-- `POST /api/register` - Inscription d'un nouvel utilisateur
-- `POST /api/login` - Connexion utilisateur
+- MySQL
+- Node.js/Express
+- HTML/CSS/JS
+- bcryptjs
 
-### Utilisateurs (Admin)
-- `GET /api/people` - Récupérer tous les utilisateurs
-- `GET /api/people/:id` - Récupérer un utilisateur spécifique
-- `PUT /api/people/:id` - Mettre à jour un utilisateur
-- `DELETE /api/people/:id` - Supprimer un utilisateur
+## Structure du projet
 
-### Candidatures
-- `GET /api/applications` - Récupérer toutes les candidatures
-- `GET /api/applications/:id` - Récupérer une candidature spécifique
-- `POST /api/applications` - Créer une nouvelle candidature
-- `PUT /api/applications/:id` - Mettre à jour une candidature
-- `DELETE /api/applications/:id` - Supprimer une candidature
+- db.js
+- server.js
+- public/style.css
+- view/
 
-### Entreprises
-- `GET /api/companies` - Récupérer toutes les entreprises
-- `GET /api/companies/:id` - Récupérer une entreprise spécifique
-- `POST /api/companies` - Créer une nouvelle entreprise
-- `PUT /api/companies/:id` - Mettre à jour une entreprise
-- `DELETE /api/companies/:id` - Supprimer une entreprise
+## Installation rapide
 
-## Interface utilisateur
-- Page d'accueil avec liste des annonces animées
-- Page de détail d'offre avec formulaire de candidature
-- Interface d'administration avec gestion CRUD
-- Design responsive et moderne
-- Animations CSS et transitions
-- Navigation intuitive
+1. npm install
+2. Créer la base job_board2025 sous MySQL et importer les tables
+3. node server.js
+4. Ouvrir view/index.html dans le navigateur
 
-## Prochaines étapes
-- Tests et finalisation
-- Fonctionnalités avancées
-- Optimisations de performance
+## Utilisation
+
+- Page d’accueil : voir les annonces, postuler
+- Inscription/connexion : créer un compte, se connecter
+- Admin : accès à la gestion complète des données (CRUD)

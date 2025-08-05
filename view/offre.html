@@ -3,118 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JobBoard - Détail de l'offre</title>
+    <title>Offres d'emploi - WorkStation</title>
     <link rel="stylesheet" href="../public/style.css">
 </head>
 <body>
     <header>
-        <nav class="container">
-            <h1>JobBoard</h1>
+        <a href="index.html">
+            <img src="../public/images/WorkStationLogo.png" alt="WorkStation Logo" id="logo">
+        </a>
+        <nav>
             <ul>
-                <li><a href="index.html">Accueil</a></li>
-                <li><a href="login.html">Connexion</a></li>
-                <li><a href="inscription.html">Inscription</a></li>
+                <li><a href="offre">Offres d'emploi</a></li>
+                <li><button>Connexion</button></li>
             </ul>
         </nav>
+        
     </header>
 
-    <main class="container">
-        <div id="offre-details">
-            <!-- Les détails de l'offre seront chargés ici -->
+    <section id="offre.html-">
+        <h2 id="offre">Des entreprises qui recrutent</h2>
+        <div class="offre">
+            <img src="images/Ubisoft_logo.svg.png" alt="Ubisoft Logo" class="logo-offre">
+            <div class="details-offre">
+                <h3>ANIMATEUR 3D (JEU À LA PREMIÈRE PERSONNE)</h3>
+                <p>Ubisoft Paris - CDI/CDD - Publié il y a 2h</p>
+                <a href="#" class="more-info">En savoir plus</a>
+            </div>
         </div>
-        
-        <div id="candidature-form" style="display: none;">
-            <h3>Postuler à cette offre</h3>
-            <form id="application-form">
-                <div class="form-group">
-                    <label for="message">Message de motivation</label>
-                    <textarea id="message" name="message" required rows="5"></textarea>
-                </div>
-                <button type="submit" class="btn">Envoyer ma candidature</button>
-            </form>
-            <div id="application-result"></div>
-        </div>
-    </main>
+    </section>
 
-    <script>
-        // Récupérer l'ID de l'offre depuis l'URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const offreId = urlParams.get('id');
-
-        if (!offreId) {
-            document.getElementById('offre-details').innerHTML = 
-                '<p class="message error">Aucune offre spécifiée.</p>';
-        } else {
-            // Charger les détails de l'offre
-            fetch(`/api/annonce/${offreId}`)
-                .then(response => response.json())
-                .then(offre => {
-                    const container = document.getElementById('offre-details');
-                    container.innerHTML = `
-                        <div class="job-card">
-                            <h2>${offre.titre}</h2>
-                            <div class="company">${offre.short_description}</div>
-                            <div class="location">${offre.lieu} - ${offre.typecontrat}</div>
-                            <p><strong>Description complète :</strong></p>
-                            <p>${offre.full_description}</p>
-                            <p><strong>Salaire :</strong> ${offre.salaire}</p>
-                            <p><strong>Temps de travail :</strong> ${offre.tpstravail}</p>
-                            <button onclick="showCandidatureForm()" class="btn">Postuler</button>
-                        </div>
-                    `;
-                })
-                .catch(error => {
-                    console.error('Erreur lors du chargement de l\'offre:', error);
-                    document.getElementById('offre-details').innerHTML = 
-                        '<p class="message error">Erreur lors du chargement de l\'offre.</p>';
-                });
-        }
-
-        function showCandidatureForm() {
-            document.getElementById('candidature-form').style.display = 'block';
-        }
-
-        // Gestion du formulaire de candidature
-        document.getElementById('application-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (!user) {
-                document.getElementById('application-result').innerHTML = 
-                    '<p class="message error">Vous devez être connecté pour postuler.</p>';
-                return;
-            }
-
-            const message = document.getElementById('message').value;
-            
-            fetch('/api/applications', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    id_personne: user.id,
-                    id_advertisement: offreId,
-                    message: message
-                })
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.error) {
-                    document.getElementById('application-result').innerHTML = 
-                        `<p class="message error">Erreur : ${result.error}</p>`;
-                } else {
-                    document.getElementById('application-result').innerHTML = 
-                        '<p class="message success">Candidature envoyée avec succès !</p>';
-                    document.getElementById('application-form').reset();
-                }
-            })
-            .catch(error => {
-                console.error('Erreur lors de l\'envoi de la candidature:', error);
-                document.getElementById('application-result').innerHTML = 
-                    '<p class="message error">Erreur lors de l\'envoi de la candidature.</p>';
-            });
-        });
-    </script>
 </body>
 </html>
